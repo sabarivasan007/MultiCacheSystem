@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/*
+/* Structure for multiple Cache System
  */
 type Server struct {
 	redisCache cache.CacheLibrary
@@ -21,7 +21,7 @@ type Server struct {
 	mu         sync.Mutex
 }
 
-/*
+/* Creating a New server
  */
 func NewServer(redisCache cache.CacheLibrary, memCache cache.CacheLibrary) *Server {
 	return &Server{
@@ -30,7 +30,7 @@ func NewServer(redisCache cache.CacheLibrary, memCache cache.CacheLibrary) *Serv
 	}
 }
 
-/*
+/* Determine the cache Library Type based on URI Param.
  */
 func (s *Server) determineCacheLibraryType(cacheType string) cache.CacheLibrary {
 	//cacheType := mux.Vars(r)["cacheType"]
@@ -44,7 +44,7 @@ func (s *Server) determineCacheLibraryType(cacheType string) cache.CacheLibrary 
 	}
 }
 
-/*
+/* Get Cache data from specfied Cache System.
  */
 func (s *Server) GetCache(w http.ResponseWriter, r *http.Request) {
 	key := mux.Vars(r)["key"]
@@ -66,7 +66,7 @@ func (s *Server) GetCache(w http.ResponseWriter, r *http.Request) {
 	utils.RespondError(w, http.StatusNotFound, "Cache miss")
 }
 
-/*
+/* Set the Cache data to specific Cache System
  */
 func (s *Server) SetCache(w http.ResponseWriter, r *http.Request) {
 	CacheLibraryType := r.URL.Query().Get("cache")
@@ -138,7 +138,7 @@ func (s *Server) SetCacheWithTTL(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-/*
+/* Delete the given key from specified Cache System.
  */
 func (s *Server) DeleteCache(w http.ResponseWriter, r *http.Request) {
 	key := mux.Vars(r)["key"]
@@ -162,10 +162,10 @@ func (s *Server) DeleteCache(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-/*
+/* Clear All data from specified cache System.
  */
 func (server *Server) ClearAllCaches(writter http.ResponseWriter, request *http.Request) {
-	log.Printf("Clearing all caches")
+	log.Print("Started Clearing all caches")
 	CacheLibraryType := request.URL.Query().Get("cache")
 	cache := server.determineCacheLibraryType(CacheLibraryType)
 
@@ -177,7 +177,7 @@ func (server *Server) ClearAllCaches(writter http.ResponseWriter, request *http.
 	server.mu.Lock()
 	defer server.mu.Unlock()
 	if err := cache.ClearAll(); err != nil {
-		utils.LogError("Error clearing cache", err)
+		utils.LogError("Error while clearing cache System", err)
 		utils.RespondError(writter, http.StatusInternalServerError, "Failed to clear cache")
 		return
 	}

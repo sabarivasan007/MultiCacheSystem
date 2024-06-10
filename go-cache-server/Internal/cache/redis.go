@@ -31,7 +31,7 @@ func (r *RedisCache) Set(key string, value string) error {
 }
 
 func (r *RedisCache) SetWithTTL(key string, value string, expiration int) error {
-	expireTime := time.Duration(expiration)
+	expireTime := time.Duration(expiration) * time.Second
 	return r.client.Set(context.Background(), key, value, expireTime).Err()
 }
 
