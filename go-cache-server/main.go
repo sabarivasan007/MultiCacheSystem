@@ -16,8 +16,8 @@ type Router struct {
 }
 
 func main() {
-	redisCache := cache.NewRedisCache("redis:6379", "", 0, 1*time.Minute)
-	memCache := cache.NewMemCache("memcached:11211", 60)
+	redisCache := cache.NewRedisCache("localhost:6379", "", 0, 1*time.Minute)
+	memCache := cache.NewMemCache("localhost:11211", 60)
 
 	srv := server.NewServer(redisCache, memCache)
 
@@ -25,6 +25,7 @@ func main() {
 
 	// Cache System will send as param
 	r.HandleFunc("/cache/{key}", srv.GetCache).Methods("GET")
+	r.HandleFunc("/cache/TTL/{key}", srv.GetCacheWithTTL).Methods("GET")
 	r.HandleFunc("/cache", srv.SetCache).Methods("POST")
 	r.HandleFunc("/cache/{ttl}", srv.SetCacheWithTTL).Methods("POST")
 	r.HandleFunc("/cache/{key}", srv.DeleteCache).Methods("DELETE")

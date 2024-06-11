@@ -1,7 +1,8 @@
 # MultiBackend Cache System
 
 ## Overview
-The MultiBackend Cache System is designed to facilitate efficient data caching by utilizing multiple caching strategies. This system supports Memcache and Redis implementations, allowing for flexible, scalable caching solutions suitable for a variety of applications.
+The MultiBackend Cache System is designed to facilitate efficient data caching by utilizing multiple caching strategies. 
+This system supports Memcache and Redis implementations, allowing for flexible, scalable caching solutions suitable for a variety of applications.
 
 ## Features
 - **Multiple Cache Backends**: Supports Memcache and Redis.
@@ -45,7 +46,7 @@ curl -X POST -d '{"key": "example", "value": "123"}' http://localhost:8080/cache
 
 
 Get a cache entry:
-curl http://localhost:8080/cache/example?cache=redis
+curl -X GET http://localhost:8080/cache/example?cache=redis
 
 
 Delete a cache entry:
