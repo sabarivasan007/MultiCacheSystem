@@ -3,6 +3,7 @@ package cache
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -23,31 +24,66 @@ func NewRedisCache(addr string, password string, db int, ttl time.Duration) *Red
 	return &RedisCache{client: client, ttl: ttl}
 }
 
-func (r *RedisCache) Get(key string) (string, error) {
-	return r.client.Get(context.Background(), key).Result()
+func (r *RedisCache) Get(key string) (interface{}, error) {
+	val, err := r.client.Get(context.Background(), key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, fmt.Errorf("key does not exist")
+		}
+		return nil, err
+	}
+	var data interface{}
+	err = json.Unmarshal([]byte(val), &data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+	//return r.client.Get(context.Background(), key).Result()
 }
 
-func (r *RedisCache) GetWithTTL(key string) (string, int, error) {
+func (r *RedisCache) GetWithTTL(key string) (interface{}, time.Duration, error) {
 	ctx := context.Background()
+
 	value, err := r.client.Get(ctx, key).Result()
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
+
 	ttl, err := r.client.TTL(ctx, key).Result()
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
-	return value, int(ttl.Seconds()), nil
+
+	var data interface{}
+	err = json.Unmarshal([]byte(value), &data)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to unmarshal value: %v", err)
+	}
+
+	return data, ttl, nil
 }
 
-func (r *RedisCache) Set(key string, value string) error {
-	return r.client.Set(context.Background(), key, value, r.ttl).Err()
-}
+// func (r *RedisCache) Set(key string, value interface{}) error {
+// 	val, err := json.Marshal(value)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return r.client.Set(context.Background(), key, val, r.ttl).Err()
+// }
 
-func (r *RedisCache) SetWithTTL(key string, value string, expiration int) error {
-	expireTime := time.Duration(expiration) * time.Second
-	fmt.Printf("Setting key: %s with value: %s and TTL: %d seconds\n", key, value, expiration) // Add this line for logging
-	return r.client.Set(context.Background(), key, value, expireTime).Err()
+func (r *RedisCache) Set(key string, value interface{}, ttl time.Duration) error {
+
+	val, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	// Use the default TTL if the provided ttl is not provided
+	actualTTL := ttl
+	if ttl <= 0 {
+		actualTTL = r.ttl
+	}
+	fmt.Printf("Setting key: %s with value: %s and TTL: %d seconds\n", key, value, ttl) // Add this line for logging
+	return r.client.Set(context.Background(), key, val, actualTTL).Err()
 }
 
 func (r *RedisCache) Delete(key string) error {

@@ -27,9 +27,13 @@ func main() {
 	r.HandleFunc("/cache/{key}", srv.GetCache).Methods("GET")
 	r.HandleFunc("/cache/TTL/{key}", srv.GetCacheWithTTL).Methods("GET")
 	r.HandleFunc("/cache", srv.SetCache).Methods("POST")
-	r.HandleFunc("/cache/{ttl}", srv.SetCacheWithTTL).Methods("POST")
+	//r.HandleFunc("/cache/{ttl}", srv.SetCacheWithTTL).Methods("POST")
 	r.HandleFunc("/cache/{key}", srv.DeleteCache).Methods("DELETE")
 	r.HandleFunc("/cache/clear", srv.ClearAllCaches).Methods("PUT")
+
+	//router setup for accessing these metrics
+	// r.HandleFunc("/metrics/redis", srv.GetRedisMetrics).Methods("GET")
+	// r.HandleFunc("/metrics/memcached", srv.GetMemcachedStats).Methods("GET")
 
 	// For Redis
 	// r.HandleFunc("/redis/cache/{key}", srv.GetCache).Methods("GET")
@@ -48,7 +52,7 @@ func main() {
 	router := Router{r}
 
 	// Start the HTTP server
-	addr := "127.0.0.1:8080"
+	addr := ":8080"
 	log.Printf("Server started at %s\n", addr)
 	log.Fatal(http.ListenAndServe(addr, router))
 }

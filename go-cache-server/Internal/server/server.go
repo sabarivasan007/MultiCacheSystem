@@ -2,11 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"sync"
+	"time"
 
 	"go-cache-server/Internal/cache"
 	utils "go-cache-server/packageUtils/Utils"
@@ -59,7 +58,7 @@ func (s *Server) GetCache(w http.ResponseWriter, r *http.Request) {
 
 	value, err := cache.Get(key)
 	if err == nil {
-		utils.RespondJSON(w, http.StatusOK, map[string]string{"key": key, "value": value})
+		utils.RespondJSON(w, http.StatusOK, map[string]interface{}{"key": key, "value": value})
 		log.Printf("Returning from %T", cache)
 		return
 	}
@@ -83,9 +82,9 @@ func (s *Server) GetCacheWithTTL(w http.ResponseWriter, r *http.Request) {
 	log.Println("values:", value)
 	log.Println("values:", ttl)
 	log.Println("values:", err)
-	str := strconv.Itoa(ttl)
+	//str := strconv.Itoa(ttl)
 	if err == nil {
-		utils.RespondJSON(w, http.StatusOK, map[string]string{"key": key, "value": value, "ttl": str})
+		utils.RespondJSON(w, http.StatusOK, map[string]interface{}{"key": key, "value": value, "ttl": ttl.String()})
 		log.Printf("Returning from %T", cache)
 		return
 	}
@@ -105,17 +104,19 @@ func (s *Server) SetCache(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
+		Key   string        `json:"key"`
+		Value interface{}   `json:"value"`
+		TTL   time.Duration `json:"ttl"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		utils.LogError("Error While decoding JSON", err)
 		utils.RespondError(w, http.StatusBadRequest, "Invalid JSON payload")
 		return
 	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := cache.Set(payload.Key, payload.Value); err != nil {
+	if err := cache.Set(payload.Key, payload.Value, payload.TTL); err != nil {
 		utils.LogError("Error While setting cache", err)
 		utils.RespondError(w, http.StatusInternalServerError, "Failed to set cache")
 		return
@@ -125,46 +126,46 @@ func (s *Server) SetCache(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-* Set Cache Data with Specified TTL
- */
-func (s *Server) SetCacheWithTTL(w http.ResponseWriter, r *http.Request) {
-	ttl := mux.Vars(r)["ttl"]
-	expireDuration, err := strconv.Atoi(ttl)
-	if err != nil {
-		log.Println("Error:", err)
-		return
-	}
+// * Set Cache Data with Specified TTL
+//  */
+// func (s *Server) SetCacheWithTTL(w http.ResponseWriter, r *http.Request) {
+// 	ttl := mux.Vars(r)["ttl"]
+// 	expireDuration, err := strconv.Atoi(ttl)
+// 	if err != nil {
+// 		log.Println("Error:", err)
+// 		return
+// 	}
 
-	CacheLibraryType := r.URL.Query().Get("cache")
-	if CacheLibraryType == "" {
-		utils.RespondError(w, http.StatusBadRequest, "Cache type is missing")
-		return
-	}
-	cache := s.determineCacheLibraryType(CacheLibraryType)
-	if cache == nil {
-		utils.RespondError(w, http.StatusBadRequest, "Unsupported cache type")
-		return
-	}
+// 	CacheLibraryType := r.URL.Query().Get("cache")
+// 	if CacheLibraryType == "" {
+// 		utils.RespondError(w, http.StatusBadRequest, "Cache type is missing")
+// 		return
+// 	}
+// 	cache := s.determineCacheLibraryType(CacheLibraryType)
+// 	if cache == nil {
+// 		utils.RespondError(w, http.StatusBadRequest, "Unsupported cache type")
+// 		return
+// 	}
 
-	var payload struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		utils.LogError("Error while decoding JSON", err)
-		utils.RespondError(w, http.StatusBadRequest, "Invalid JSON payload")
-		return
-	}
-	fmt.Printf("Setting key: %s with value: %s and TTL: %d seconds\n", payload.Key, payload.Value, expireDuration) // Add this line for logging
+// 	var payload struct {
+// 		Key   string `json:"key"`
+// 		Value string `json:"value"`
+// 	}
+// 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+// 		utils.LogError("Error while decoding JSON", err)
+// 		utils.RespondError(w, http.StatusBadRequest, "Invalid JSON payload")
+// 		return
+// 	}
+// 	fmt.Printf("Setting key: %s with value: %s and TTL: %d seconds\n", payload.Key, payload.Value, expireDuration) // Add this line for logging
 
-	if err := cache.SetWithTTL(payload.Key, payload.Value, expireDuration); err != nil {
-		utils.LogError("Error while setting cache", err)
-		utils.RespondError(w, http.StatusInternalServerError, "Failed to set cache")
-		return
-	}
+// 	if err := cache.SetWithTTL(payload.Key, payload.Value, expireDuration); err != nil {
+// 		utils.LogError("Error while setting cache", err)
+// 		utils.RespondError(w, http.StatusInternalServerError, "Failed to set cache")
+// 		return
+// 	}
 
-	utils.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
+// 	utils.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+// }
 
 /* Delete the given key from specified Cache System.
  */
