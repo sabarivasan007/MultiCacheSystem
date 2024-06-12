@@ -5,6 +5,7 @@ go 1.22.3
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.1
 )
 

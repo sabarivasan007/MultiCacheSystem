@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func setupRouter(redisCache cache.Cache, memCache cache.Cache) *mux.Router {
+func setupRouter(redisCache cache.CacheSystem, memCache cache.CacheSystem) *mux.Router {
 	srv := server.NewServer(redisCache, memCache)
 	r := mux.NewRouter()
 

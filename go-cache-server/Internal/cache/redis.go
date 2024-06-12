@@ -47,7 +47,6 @@ func (r *RedisCache) Get(key string) (interface{}, error) {
 		return nil, err
 	}
 	return data, nil
-	//return r.client.Get(context.Background(), key).Result()
 }
 
 func (r *RedisCache) GetWithTTL(key string) (interface{}, time.Duration, error) {
@@ -72,30 +71,20 @@ func (r *RedisCache) GetWithTTL(key string) (interface{}, time.Duration, error) 
 	return data, ttl, nil
 }
 
-// func (r *RedisCache) Set(key string, value interface{}) error {
-// 	val, err := json.Marshal(value)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return r.client.Set(context.Background(), key, val, r.ttl).Err()
-// }
-
 func (r *RedisCache) Set(key string, value interface{}, ttl time.Duration) error {
 
 	val, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
-	// Use the default TTL if the provided ttl is not provided
-	// actualTTL := ttl
-	// if ttl <= 0 {
-	// 	actualTTL = r.ttl
-	// }
+	//Use the default TTL if the provided ttl is not provided
+	actualTTL := ttl
+	if ttl <= 0 {
+		actualTTL = r.ttl
+	}
 
-	log.Printf("Setting KEY: %s with VALUE: %s and TTL: %v seconds\n", key, value, ttl) // Add this line for logging
-	// return r.client.Set(context.Background(), key, val, actualTTL).Err()
-	return r.client.Set(context.Background(), key, val, ttl).Err()
-
+	log.Printf("Setting KEY: %s with VALUE: %s and TTL: %v seconds\n", key, value, ttl)
+	return r.client.Set(context.Background(), key, val, actualTTL).Err()
 }
 
 func (r *RedisCache) Delete(key string) error {
