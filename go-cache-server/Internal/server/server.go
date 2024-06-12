@@ -16,14 +16,14 @@ import (
 /* Structure for multiple Cache System
  */
 type Server struct {
-	redisCache cache.CacheLibrary
-	memCache   cache.CacheLibrary
+	redisCache cache.Cache
+	memCache   cache.Cache
 	mu         sync.Mutex
 }
 
 /* Creating a New server
  */
-func NewServer(redisCache cache.CacheLibrary, memCache cache.CacheLibrary) *Server {
+func NewServer(redisCache cache.Cache, memCache cache.Cache) *Server {
 	return &Server{
 		redisCache: redisCache,
 		memCache:   memCache,
@@ -32,7 +32,7 @@ func NewServer(redisCache cache.CacheLibrary, memCache cache.CacheLibrary) *Serv
 
 /* Determine the cache Library Type based on URI Param.
  */
-func (s *Server) determineCacheLibraryType(cacheType string) cache.CacheLibrary {
+func (s *Server) determineCacheLibraryType(cacheType string) cache.Cache {
 	//cacheType := mux.Vars(r)["cacheType"]
 	switch cacheType {
 	case "redis":
@@ -104,19 +104,24 @@ func (s *Server) SetCache(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload struct {
-		Key   string        `json:"key"`
-		Value interface{}   `json:"value"`
-		TTL   time.Duration `json:"ttl"`
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+		TTL   int64       `json:"ttl"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		utils.LogError("Error While decoding JSON", err)
 		utils.RespondError(w, http.StatusBadRequest, "Invalid JSON payload")
 		return
 	}
+	log.Println("Step1: ", payload.Key, payload.Value, payload.TTL)
+
+	ttl := time.Duration(payload.TTL) * time.Second
+
+	log.Println("Step2: ", payload.Key, payload.Value, &ttl)
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if err := cache.Set(payload.Key, payload.Value, payload.TTL); err != nil {
+	if err := cache.Set(payload.Key, payload.Value, ttl); err != nil {
 		utils.LogError("Error While setting cache", err)
 		utils.RespondError(w, http.StatusInternalServerError, "Failed to set cache")
 		return

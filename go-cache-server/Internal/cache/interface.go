@@ -2,7 +2,7 @@ package cache
 
 import "time"
 
-type CacheLibrary interface {
+type Cache interface {
 	Get(key string) (interface{}, error)
 	GetWithTTL(key string) (interface{}, time.Duration, error)
 	//Set(key string, value interface{}) error

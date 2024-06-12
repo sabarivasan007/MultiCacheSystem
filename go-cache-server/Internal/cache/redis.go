@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -21,6 +22,14 @@ func NewRedisCache(addr string, password string, db int, ttl time.Duration) *Red
 		Password: password,
 		DB:       db,
 	})
+	log.Print("Redis initialized")
+	// Print the defaults
+	fmt.Println("Default PoolSize:", client.Options().PoolSize)
+	fmt.Println("Default MinIdleConns:", client.Options().MinIdleConns)
+	fmt.Println("Default MaxRetries:", client.Options().MaxRetries)
+	fmt.Println("Default DialTimeout:", client.Options().DialTimeout)
+	fmt.Println("Default ReadTimeout:", client.Options().ReadTimeout)
+	fmt.Println("Default WriteTimeout:", client.Options().WriteTimeout)
 	return &RedisCache{client: client, ttl: ttl}
 }
 
@@ -78,12 +87,15 @@ func (r *RedisCache) Set(key string, value interface{}, ttl time.Duration) error
 		return err
 	}
 	// Use the default TTL if the provided ttl is not provided
-	actualTTL := ttl
-	if ttl <= 0 {
-		actualTTL = r.ttl
-	}
-	fmt.Printf("Setting key: %s with value: %s and TTL: %d seconds\n", key, value, ttl) // Add this line for logging
-	return r.client.Set(context.Background(), key, val, actualTTL).Err()
+	// actualTTL := ttl
+	// if ttl <= 0 {
+	// 	actualTTL = r.ttl
+	// }
+
+	log.Printf("Setting KEY: %s with VALUE: %s and TTL: %v seconds\n", key, value, ttl) // Add this line for logging
+	// return r.client.Set(context.Background(), key, val, actualTTL).Err()
+	return r.client.Set(context.Background(), key, val, ttl).Err()
+
 }
 
 func (r *RedisCache) Delete(key string) error {

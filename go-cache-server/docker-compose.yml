@@ -20,16 +20,16 @@ services:
     ports:
       - "11211:11211"
     volumes:
-      - memcached-data:/data 
+      - memcached-data:/data
     networks:
       - caching_system
     container_name: memcached
-      
+
   go-service:
     build:
-       context: .
-       dockerfile: Dockerfile
-    command: ["go", "run", "main.go"]
+      context: .
+      dockerfile: dockerFile
+    command: [ "go", "run", "main.go" ]
     volumes:
       - .:/app
     ports:
@@ -41,6 +41,6 @@ services:
       - caching_system
     container_name: go-service
 
-volumes :
+volumes:
   redis-data:
   memcached-data:

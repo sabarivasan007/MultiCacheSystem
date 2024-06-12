@@ -16,8 +16,8 @@ type Router struct {
 }
 
 func main() {
-	redisCache := cache.NewRedisCache("localhost:6379", "", 0, 1*time.Minute)
-	memCache := cache.NewMemCache("localhost:11211", 60)
+	redisCache := cache.NewRedisCache("redis:6379", "", 0, 1*time.Minute)
+	memCache := cache.NewMemCache("memcached:11211", 60)
 
 	srv := server.NewServer(redisCache, memCache)
 
