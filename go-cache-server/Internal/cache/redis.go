@@ -49,27 +49,27 @@ func (r *RedisCache) Get(key string) (interface{}, error) {
 	return data, nil
 }
 
-func (r *RedisCache) GetWithTTL(key string) (interface{}, time.Duration, error) {
-	ctx := context.Background()
+// func (r *RedisCache) GetWithTTL(key string) (interface{}, time.Duration, error) {
+// 	ctx := context.Background()
 
-	value, err := r.client.Get(ctx, key).Result()
-	if err != nil {
-		return nil, 0, err
-	}
+// 	value, err := r.client.Get(ctx, key).Result()
+// 	if err != nil {
+// 		return nil, 0, err
+// 	}
 
-	ttl, err := r.client.TTL(ctx, key).Result()
-	if err != nil {
-		return nil, 0, err
-	}
+// 	ttl, err := r.client.TTL(ctx, key).Result()
+// 	if err != nil {
+// 		return nil, 0, err
+// 	}
 
-	var data interface{}
-	err = json.Unmarshal([]byte(value), &data)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed to unmarshal value: %v", err)
-	}
+// 	var data interface{}
+// 	err = json.Unmarshal([]byte(value), &data)
+// 	if err != nil {
+// 		return nil, 0, fmt.Errorf("failed to unmarshal value: %v", err)
+// 	}
 
-	return data, ttl, nil
-}
+// 	return data, ttl, nil
+// }
 
 func (r *RedisCache) Set(key string, value interface{}, ttl time.Duration) error {
 
